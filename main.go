@@ -1,52 +1,20 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"github.com/mohamedamer/byygscrap/scraper"
 	"net/http"
 	"net/url"
 	"strings"
 )
 
-type Result struct {
-	Result []ObjectInfo
-	TotalCount int
-}
-
-type ObjectInfo struct {
-	ObjectTypeDescription string
-	ObjectArea string
-	ObjectFloor string
-	RentPerMonth string
-	SeekAreaDescription string
-	StreetName string
-	EndPeriodMPDateString string
-
-}
-
 func main() {
 	client := &http.Client{}
-	values := createBody()
-	request, err := createRequest(values)
+	scrapeExecutor := scraper.ScrapeExecutor{Client: client}
+	request, err := createRequest()
+	job := scraper.ScrapeJob{Request: request, Status: scraper.READY}
+	result := scrapeExecutor.Scrape(&job)
 	if err != nil {
-		fmt.Errorf("error occured %v", err)
-	}
-
-	resp, err := client.Do(request)
-	defer resp.Body.Close()
-	if err != nil {
-		fmt.Errorf("error occured %v", err)
-	}
-
-	contents, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		fmt.Errorf("error occured %v", err)
-	}
-
-	var result Result
-	jsonErr := json.Unmarshal(contents, &result)
-	if jsonErr != nil {
 		fmt.Errorf("error occured %v", err)
 	}
 
@@ -63,7 +31,8 @@ func createBody() url.Values {
 	return values
 }
 
-func createRequest(values url.Values) (*http.Request, error) {
+func createRequest() (*http.Request, error) {
+	values := createBody()
 	request, err := http.NewRequest("POST", "https://marknad.byggvesta.se/API/Service/SearchServiceHandler.ashx", strings.NewReader(values.Encode()))
 	request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	request.Header.Set("X-Requested-With", "XMLHttpRequest")
