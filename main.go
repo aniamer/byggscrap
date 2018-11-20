@@ -2,22 +2,59 @@ package main
 
 import (
 	"fmt"
-	"github.com/mohamedamer/byygscrap/scraper"
+	"github.com/mohamedamer/byggscrap/models"
+	"github.com/mohamedamer/byggscrap/scraper"
+	"github.com/robfig/cron"
+	"log"
 	"net/http"
+	"net/smtp"
 	"net/url"
+	"os"
+	"os/signal"
 	"strings"
 )
 
 func main() {
+	c := cron.New()
+	c.AddFunc("@every 10s", getApartmentInfo)
+	c.Start()
+	sig := make(chan os.Signal)
+	signal.Notify(sig, os.Interrupt, os.Kill)
+	<-sig
+	log.Print("send email")
+		§//sendEmail("done")
+}
+
+func sendEmail(msg string) {
+	from := ""
+	pass := ""
+	to := ""
+	err := smtp.SendMail("smtp.gmail.com:587", smtp.PlainAuth("", from, pass, "smtp.gmail.com"),
+		from, []string{to}, []byte(msg))
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+func createEmail(result models.Result) {
+	if result.TotalCount > 0 {
+		var sb strings.Builder
+		sb.WriteString(fmt.Sprintf("the following apartments are now available %v !"))
+		for _, item := range result.Result {
+			sb.WriteString(fmt.Sprintf("Address %v\nFloor %v\nArea %v\nDescription %v\nRent per month %v\nLatest application date %v",item.StreetName, item.ObjectFloor, item.ObjectArea, item.ObjectTypeDescription, item.RentPerMonth, item.EndPeriodMPDateString))
+		}
+		//msg := sb.String()
+	}
+}
+
+func getApartmentInfo() {
 	client := &http.Client{}
 	scrapeExecutor := scraper.ScrapeExecutor{Client: client}
 	request, err := createRequest()
 	job := scraper.ScrapeJob{Request: request, Status: scraper.READY}
 	result := scrapeExecutor.Scrape(&job)
 	if err != nil {
-		fmt.Errorf("error occured %v", err)
+		log.Fatalf("error occured %v", err)
 	}
-
 	fmt.Printf("results %v %v", result.TotalCount, result.Result)
 }
 

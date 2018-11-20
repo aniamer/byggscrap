@@ -3,7 +3,7 @@ package scraper
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/mohamedamer/byygscrap/models"
+	"github.com/mohamedamer/byggscrap/models"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -50,7 +50,7 @@ func (jobResult *JobResult) Parse(contentStruct interface{}) error {
 func (executor *ScrapeExecutor) Scrape (job *ScrapeJob) models.Result {
 	var result models.Result
 	if job.Status == READY {
-		log.Printf("job %v is ready and is starting ...", job.Id)
+		log.Printf("job %v is ready and is starting ...\n", job.Id)
 		response, err := executor.Client.Do(job.Request)
 		defer response.Body.Close()
 		if err != nil {
