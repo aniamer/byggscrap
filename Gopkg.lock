@@ -2,14 +2,76 @@
 
 
 [[projects]]
-  name = "gopkg.in/robfig/cron.v1"
+  digest = "1:bd342004ef1bb83bee8709e2ad630e47a95d069f7fcb60ee1b8bceb4bbbe14ae"
+  name = "github.com/gobuffalo/envy"
   packages = ["."]
+  pruneopts = "UT"
+  revision = "801d7253ade1f895f74596b9a96147ed2d3b087e"
+  version = "v1.6.11"
+
+[[projects]]
+  digest = "1:ecd9aa82687cf31d1585d4ac61d0ba180e42e8a6182b85bd785fcca8dfeefc1b"
+  name = "github.com/joho/godotenv"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "23d116af351c84513e1946b527c88823e476be13"
+  version = "v1.3.0"
+
+[[projects]]
+  digest = "1:cbd169f49979ba0bc483cd418da756a21bba0081526d8af0fb0e9218deac2a08"
+  name = "github.com/mailgun/mailgun-go"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "4071f66f00fb74b08ae720f28ee9fcd98ebfd69e"
+  version = "v2.0.0"
+
+[[projects]]
+  branch = "master"
+  digest = "1:3d14f88229c2e2df8afd2132842d27070b96326a96e32ded020baed19d939d1f"
+  name = "github.com/mohamedamer/byggscrap"
+  packages = [
+    "models",
+    "scraper",
+  ]
+  pruneopts = "UT"
+  revision = "083ab036e9d8667ec6ecddfd5265e1285ead8ce1"
+
+[[projects]]
+  branch = "master"
+  digest = "1:9f6281d8f50290ba740db82fe5be52877936e47928cd67285ab31b490c202247"
+  name = "github.com/pkg/errors"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "059132a15dd08d6704c67711dae0cf35ab991756"
+
+[[projects]]
+  digest = "1:ed615c5430ecabbb0fb7629a182da65ecee6523900ac1ac932520860878ffcad"
+  name = "github.com/robfig/cron"
+  packages = ["."]
+  pruneopts = "UT"
   revision = "b41be1df696709bb6395fe435af20370037c0b4c"
   version = "v1.1"
+
+[[projects]]
+  digest = "1:efafa5160b1666d27e6e1ad4cd3fba27ce73aaaa1e99c3d02e14e55690a8878d"
+  name = "github.com/rogpeppe/go-internal"
+  packages = [
+    "modfile",
+    "module",
+    "semver",
+  ]
+  pruneopts = "UT"
+  revision = "d87f08a7d80821c797ffc8eb8f4e01675f378736"
+  version = "v1.0.0"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "8342b4cc66fefaa6db8cdb91bf4af5e6d7e3417fa250bf5ec303f331c5001674"
+  input-imports = [
+    "github.com/mailgun/mailgun-go",
+    "github.com/mohamedamer/byggscrap/models",
+    "github.com/mohamedamer/byggscrap/scraper",
+    "github.com/robfig/cron",
+  ]
   solver-name = "gps-cdcl"
   solver-version = 1

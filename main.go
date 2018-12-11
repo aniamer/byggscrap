@@ -1,13 +1,15 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/mohamedamer/byggscrap/models"
 	"github.com/mohamedamer/byggscrap/scraper"
+	"github.com/mailgun/mailgun-go"
 	"github.com/robfig/cron"
+	"html/template"
 	"log"
 	"net/http"
-	"net/smtp"
 	"net/url"
 	"os"
 	"os/signal"
@@ -15,47 +17,76 @@ import (
 )
 
 func main() {
+	signalChannel := make(chan os.Signal)
 	c := cron.New()
-	c.AddFunc("@every 10s", getApartmentInfo)
+	c.AddFunc("@every 5s", byggJob)
 	c.Start()
-	sig := make(chan os.Signal)
-	signal.Notify(sig, os.Interrupt, os.Kill)
-	<-sig
-	log.Print("send email")
-		§//sendEmail("done")
+	signal.Notify(signalChannel, os.Interrupt, os.Kill)
+	<-signalChannel
 }
 
-func sendEmail(msg string) {
-	from := ""
-	pass := ""
-	to := ""
-	err := smtp.SendMail("smtp.gmail.com:587", smtp.PlainAuth("", from, pass, "smtp.gmail.com"),
-		from, []string{to}, []byte(msg))
+func byggJob() {
+	from := "mo@gozyra.com"
+	to := "m.elsayedamer@gmail.com"
+	fetchAndNotify(sendEmail, from, to)
+}
+
+func fetchAndNotify(fn func(msg string, from string, to string), from string, to string) {
+	result := getApartmentInfo()
+	if (result.TotalCount > 0) {
+		email := createEmail(*result)
+		log.Print("send email")
+
+		fn(email, from, to)
+	}
+}
+
+func sendEmail(msg string, from string, to string) {
+	//postmaster := "postmaster@mg.gozyra.com"
+	mailgun := mailgun.NewMailgun("mg.gozyra.com", apiKey)
+	message := mailgun.NewMessage(from, "New apartments offered", "", to)
+	message.SetHtml(msg)
+	_, _, err := mailgun.Send(message)
 	if err != nil {
-		log.Fatal(err)
-	}
-}
-func createEmail(result models.Result) {
-	if result.TotalCount > 0 {
-		var sb strings.Builder
-		sb.WriteString(fmt.Sprintf("the following apartments are now available %v !"))
-		for _, item := range result.Result {
-			sb.WriteString(fmt.Sprintf("Address %v\nFloor %v\nArea %v\nDescription %v\nRent per month %v\nLatest application date %v",item.StreetName, item.ObjectFloor, item.ObjectArea, item.ObjectTypeDescription, item.RentPerMonth, item.EndPeriodMPDateString))
-		}
-		//msg := sb.String()
+		log.Printf("error sending message\n",err)
 	}
 }
 
-func getApartmentInfo() {
+func createEmail(result models.Result) string {
+	t, err := template.ParseFiles("./templates/alert.html")
+	if err != nil {
+		log.Printf("error occured loading email template", err)
+	}
+	buf := new(bytes.Buffer)
+
+	if err = t.Execute(buf, result); err != nil {
+		log.Printf("error occured while rendering email template", err)
+	}
+
+	return buf.String()
+	//var sb strings.Builder
+	//sb.WriteString(fmt.Sprint("the following apartments are now available:\n"))
+	//
+	//for _, item := range result.Result {
+	//	sb.WriteString(fmt.Sprintf("Address %v\nFloor %v\nArea %v\nDescription %v\nRent per month %v\nLatest application date %v\n",item.StreetName, item.ObjectFloor, item.ObjectArea, item.ObjectTypeDescription, item.RentPerMonth, item.EndPeriodMPDateString))
+	//
+	//}
+	//msg := sb.String()
+	//return msg
+}
+
+func getApartmentInfo() *models.Result {
 	client := &http.Client{}
 	scrapeExecutor := scraper.ScrapeExecutor{Client: client}
 	request, err := createRequest()
 	job := scraper.ScrapeJob{Request: request, Status: scraper.READY}
 	result := scrapeExecutor.Scrape(&job)
 	if err != nil {
-		log.Fatalf("error occured %v", err)
+		log.Printf("error occured %v", err)
 	}
-	fmt.Printf("results %v %v", result.TotalCount, result.Result)
+
+	fmt.Printf("results %v %v\n", result.TotalCount, result.Result)
+	return &result
 }
 
 func createBody() url.Values {
